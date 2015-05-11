@@ -8,15 +8,31 @@ using namespace CG;
 using namespace CG::Core;
 using namespace CG::Hog;
 
-__global__ void cgHogHistogram(float *hogHistogram, float *ImgGrad, float *ImgNorm, int noHistogramBins, 
-							   int cellSizeX, int cellSizeY, int blockSizeX, int blockSizeY, int imgWidth, int imgHight)
+texture<float, 1, cudaReadModeElementType> texGauss;
+cudaArray* gaussArray;
+cudaChannelFormatDesc channelDescGauss;
+
+extern __shared__ float allShared[];
+
+__global__ void cgHogHistogram(float *hogHistogram, float *ImgGrad, float *ImgNorm, int hogNoHistogramBins, 
+							   int hogCellSizeX, int hogCellSizeY, int hogBlockSizeX, int hogBlockSizeY, int imgWidth, int imgHight)
 {
 }
 
 __host__ void 
 Hog::CGHogHistogram_CUDA(CGImage<float> *hogHistogram, CGImage<float> *ImgGrad, CGImage<float> *ImgNorm, 
-							int cellSizeX, int cellSizeY, int windowSizeX, int windowSizeY)
+							int hogCellSizeX, int hogCellSizeY)
 {
+	int hogBlockSizeX = BLOCK_SIZE_W;
+	int hogBlockSizeY = BLOCK_SIZE_H;
+	int hogNoHistogramBins = NO_BINS;
+	int noBlockX = ImgGrad->width / hogCellSizeX - hogBlockSizeX + 1;
+	int noBlockY = ImgGrad->hight / hogCellSizeY - hogBlockSizeY + 1;
+
+	dim3 blockSize(hogCellSizeX, hogBlockSizeX, hogBlockSizeY);
+	dim3 gridSize(noBlockX, noBlockY);
+	cgHogHistogram<<<gridSize, blockSize, hogNoHistogramBins * hogBlockSizeX * hogBlockSizeY * hogCellSizeX * hogBlockSizeX * hogBlockSizeY * sizeof(float)>>>
+		(hogHistogram->GetData(true), ImgGrad->GetData(true), ImgNorm->GetData(true), hogNoHistogramBins, hogCellSizeX, hogCellSizeY, hogBlockSizeX, hogBlockSizeY, ImgGrad->width, ImgGrad->hight);
 }
 
 #endif

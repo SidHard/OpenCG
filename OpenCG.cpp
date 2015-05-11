@@ -52,10 +52,10 @@ void main()
 	ImgIn->UpdateDeviceFromHost();
 	//////////////////////////////////
 	long s_t = getTickCount();
-	CG::Core::CGFilter(ImgDst, ImgIn, 0.1, 10, 1);
+	//CG::Core::CGFilter(ImgDst, ImgIn, 0.1, 10, 1);
 	//CG::Core::CGComputeGradient(ImgDst, ImgIn);
 	//CG::Core::CGComputeGradNorm(ImgDst, ImgNorm, ImgIn);
-	//CG::Core::CGPyramid(ImgDst, ImgIn, 1.23);
+	CG::Core::CGPyramid(ImgDst, ImgIn, 1.23);
 	long e_t = getTickCount();
 	printf("%d", e_t - s_t);
 	////////////////////////////////////

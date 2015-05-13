@@ -16,7 +16,7 @@ namespace CG
 {
 	namespace Hog
 	{
-		void CGHogHistogram(CGImage<float> *hogHistogram, CGImage<float> *ImgGrad, CGImage<float> *ImgNorm, int hogCellSizeX, int hogCellSizeY);
+		void CGHogHistogram(CGImage<float> *hogHistogram, CGImage<float> *ImgGrad, CGImage<float> *ImgNorm, int hogCellSizeX = 4, int hogCellSizeY = 4);
 
 		void CGHogHistogram_CPU(CGImage<float> *hogHistogram, CGImage<float> *ImgGrad, CGImage<float> *ImgNorm, int hogCellSizeX, int hogCellSizeY);
 

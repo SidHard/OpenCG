@@ -31,7 +31,7 @@ void main()
 {
 	Mat m_Image = imread("D:\\1.bmp", CV_LOAD_IMAGE_GRAYSCALE);
 
-	resize(m_Image, m_Image, Size(641, 479) );
+	resize(m_Image, m_Image, Size(320, 240) );
 
 	m_Image.convertTo(m_Image,CV_32FC1,1.0/255);
 
@@ -40,10 +40,10 @@ void main()
 	//////////////////////////////////
 	//新建ImgIn，并从Mat中拷贝数据
 	CG::Core::CGImage<float> *ImgIn = new CG::Core::CGImage<float>(m_Image.cols, m_Image.rows);
-
-	CG::Core::CGImage<float> *ImgDst = new CG::Core::CGImage<float>(m_Image.cols, m_Image.rows);
-
+	//CG::Core::CGImage<float> *ImgDst = new CG::Core::CGImage<float>(m_Image.cols, m_Image.rows);
+	CG::Core::CGImage<float> *ImgDst = new CG::Core::CGImage<float>((m_Image.cols / 4 - 1)*2*9, (m_Image.rows / 4 - 1)*2);
 	CG::Core::CGImage<float> *ImgNorm = new CG::Core::CGImage<float>(m_Image.cols, m_Image.rows);
+	CG::Core::CGImage<float> *ImgGrad = new CG::Core::CGImage<float>(m_Image.cols, m_Image.rows);
 
 	float *imgData = ImgIn->GetData(false);
 
@@ -54,8 +54,9 @@ void main()
 	long s_t = getTickCount();
 	//CG::Core::CGFilter(ImgDst, ImgIn, 0.1, 10, 1);
 	//CG::Core::CGComputeGradient(ImgDst, ImgIn);
-	//CG::Core::CGComputeGradNorm(ImgDst, ImgNorm, ImgIn);
-	CG::Core::CGPyramid(ImgDst, ImgIn, 1.23);
+	//CG::Core::CGPyramid(ImgDst, ImgIn, 1.23);
+	CG::Core::CGComputeGradNorm(ImgGrad, ImgNorm, ImgIn);
+	CG::Hog::CGHogHistogram(ImgDst, ImgGrad, ImgNorm);
 	long e_t = getTickCount();
 	printf("%d", e_t - s_t);
 	////////////////////////////////////

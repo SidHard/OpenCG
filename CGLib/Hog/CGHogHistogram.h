@@ -4,11 +4,7 @@
 
 #pragma once
 
-#include "..\Core\CGCore.h"
-
-#define BLOCK_SIZE_W 2
-#define BLOCK_SIZE_H 2
-#define NO_BINS 9
+#include "CGHogConfig.h"
 
 using namespace CG::Core;
 
@@ -16,12 +12,14 @@ namespace CG
 {
 	namespace Hog
 	{
-		void CGHogHistogram(CGImage<float> *hogHistogram, CGImage<float> *ImgGrad, CGImage<float> *ImgNorm, int hogCellSizeX = 4, int hogCellSizeY = 4);
+		void CGHogHistogram(CGImage<float> *hogHistogram, CGImage<float> *ImgGrad, CGImage<float> *ImgNorm);
 
-		void CGHogHistogram_CPU(CGImage<float> *hogHistogram, CGImage<float> *ImgGrad, CGImage<float> *ImgNorm, int hogCellSizeX, int hogCellSizeY);
+		void CGHogHistogram_CPU(CGImage<float> *hogHistogram, CGImage<float> *ImgGrad, CGImage<float> *ImgNorm);
 
 #ifndef COMPILE_WITHOUT_CUDA
-		void CGHogHistogram_CUDA(CGImage<float> *hogHistogram, CGImage<float> *ImgGrad, CGImage<float> *ImgNorm, int hogCellSizeX, int hogCellSizeY);
+		__host__ void cgInitHistogram();
+
+		__host__ void CGHogHistogram_CUDA(CGImage<float> *hogHistogram, CGImage<float> *ImgGrad, CGImage<float> *ImgNorm);
 #endif
 	}
 }

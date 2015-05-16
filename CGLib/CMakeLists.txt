@@ -27,15 +27,22 @@ Core/CGPyramid.cu
 
 SET(OpenCG_HOG_HEADERS
 Hog/CGHog.h
+Hog/CGHogConfig.h
+Hog/CGHogEngine.h
 Hog/CGHogHistogram.h
+Hog/CGHogSvmEvaluate.h
 )
 
 SET(OpenCG_HOG_SOURCES
+Hog/CGHogEngine.cpp
 Hog/CGHogHistogram.cpp
+Hog/CGHogSvmEvaluate.cpp
 )
 
 set(OpenCG_HOG_CUDA_SOURCES
+Hog/CGHogEngine.cu
 Hog/CGHogHistogram.cu
+Hog/CGHogSvmEvaluate.cu
 )
 
 ###############       Collect Source      ###################

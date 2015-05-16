@@ -9,7 +9,7 @@ using namespace CG::Core;
 
 texture<float, 2, cudaReadModeElementType> tex;
 
-__global__ void fastResize(float *result, int width, int hight, float scale)
+__global__ void fastResize(float *result, int width, int hight, int dstWidth, int dstHight, float scale)
 {
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
 	int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -18,13 +18,13 @@ __global__ void fastResize(float *result, int width, int hight, float scale)
 	float u = x*scale;
 	float v = y*scale;
 
-	if(x<width && y<hight)
+	if(x<width && y<hight && x<dstWidth && y<dstHight)
 		result[globalPos] = tex2D(tex, u, v);
 
-	if(x<20 && y<10)
-	{
-		printf("*%.2f %d ", result[globalPos], x);
-	}
+	//if(x<20 && y<10)
+	//{
+	//	printf("*%.2f %d ", result[globalPos], x);
+	//}
 }
 
 __host__ void 
@@ -36,7 +36,7 @@ Core::CGPyramid_CUDA(CGImage<float> *ImgDst, CGImage<float> *ImgIn, float scale)
 	dim3 blockSize(16, 16);
 	//∞Û∂®Œ∆¿Ì
 	const cudaChannelFormatDesc desc = cudaCreateChannelDesc<float>();
-	//tex.filterMode = cudaFilterModeLinear;
+	tex.filterMode = cudaFilterModeLinear;
 	tex.normalized = false;
 	float *inTex;
 	size_t pitch;
@@ -44,8 +44,9 @@ Core::CGPyramid_CUDA(CGImage<float> *ImgDst, CGImage<float> *ImgIn, float scale)
 	cudaMemcpy2D(inTex, pitch, ImgIn->GetData(true), ImgIn->width*sizeof(float), ImgIn->width*sizeof(float), ImgIn->hight, cudaMemcpyDeviceToDevice);
 	cudaBindTexture2D(0, tex, inTex, desc, ImgIn->width, ImgIn->hight, pitch);
 
-	ImgDst->ChangeSize(newWidth, newHight);
-	fastResize<<<gridSize, blockSize>>>(ImgDst->GetData(true), newWidth, newHight, scale);
+	ImgDst->Clear();
+	//ImgDst->ChangeSize(newWidth, newHight);
+	fastResize<<<gridSize, blockSize>>>(ImgDst->GetData(true), ImgDst->width, ImgDst->hight, newWidth, newHight, scale);
 
 	cudaUnbindTexture(tex);
 	cudaFree(inTex);

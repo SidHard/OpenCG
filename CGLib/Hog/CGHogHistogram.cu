@@ -15,15 +15,16 @@ __device__ int d_sum = 0;
 
 texture<float, 1, cudaReadModeElementType> texGauss;
 cudaArray* gaussArray;
-cudaChannelFormatDesc desc;
+cudaChannelFormatDesc higtogramDesc;
 
 extern __shared__ float allShared[];
 
-__host__ void cgHogInit(int hogCellSizeX, int hogCellSizeY)
+__host__ void Hog::cgInitHistogram()
 {
 	//变量初始化
 	int h_block_w_h_bins[3];
 	float h_centerBlock_pix[3], h_centerBlock[3], h_pixPerCell[3];
+	int hogCellSizeX = CELL_SIZE_W, hogCellSizeY = CELL_SIZE_H;
 
 	h_centerBlock_pix[0] = hogCellSizeX * BLOCK_SIZE_W / 2.0f;  h_centerBlock_pix[1] = hogCellSizeY * BLOCK_SIZE_H / 2.0f;  h_centerBlock_pix[2] = 180 / 2.0f;
 	h_centerBlock[0] = BLOCK_SIZE_W / 2.0f;						h_centerBlock[1] = BLOCK_SIZE_H / 2.0f;						h_centerBlock[2] = NO_BINS / 2.0f;
@@ -54,10 +55,10 @@ __host__ void cgHogInit(int hogCellSizeX, int hogCellSizeY)
 		}
 	}
 
-	desc = cudaCreateChannelDesc<float>();
-	cudaMallocArray(&gaussArray, &desc, hogCellSizeX * BLOCK_SIZE_W * hogCellSizeY * BLOCK_SIZE_H, 1);
+	higtogramDesc = cudaCreateChannelDesc<float>();
+	cudaMallocArray(&gaussArray, &higtogramDesc, hogCellSizeX * BLOCK_SIZE_W * hogCellSizeY * BLOCK_SIZE_H, 1);
 	cudaMemcpyToArray(gaussArray, 0, 0, weights, sizeof(float) * hogCellSizeX * BLOCK_SIZE_W * hogCellSizeY * BLOCK_SIZE_H, cudaMemcpyHostToDevice);
-	cudaBindTextureToArray(texGauss, gaussArray, desc);
+	cudaBindTextureToArray(texGauss, gaussArray, higtogramDesc);
 
 	//释放指针
 	//free(weights); 
@@ -243,7 +244,6 @@ __global__ void normalizeHistograms(float *blockHistograms, int hogNoHistogramBi
 
 	int cellIdx = threadIdx.y;
 	int cellIdy = threadIdx.z;
-	int binId = threadIdx.x;
 
 	int targetPos;
 	int localPos = cellIdx * hogNoHistogramBins + cellIdy * hogNoHistogramBins * blockDim.y + threadIdx.x;
@@ -344,40 +344,40 @@ __global__ void normalizeHistograms(float *blockHistograms, int hogNoHistogramBi
 	blockHistograms[globalPos] = localValue;
 }
 
-__host__ void cgHogFree()
+__host__ void cgFreeHistogram()
 {
 	cudaUnbindTexture(texGauss);
-	cudaFree(centerBlock_pix); cudaFree(centerBlock); cudaFree(pixPerCell); cudaFree(block_w_h_bins); cudaFree(gaussArray);
+	cudaFree(centerBlock_pix); cudaFree(centerBlock); cudaFree(pixPerCell); cudaFree(block_w_h_bins); 
+	cudaFreeArray(gaussArray);
 }
 
 __host__ void 
-Hog::CGHogHistogram_CUDA(CGImage<float> *hogHistogram, CGImage<float> *ImgGrad, CGImage<float> *ImgNorm, 
-							int hogCellSizeX, int hogCellSizeY)
+Hog::CGHogHistogram_CUDA(CGImage<float> *hogHistogram, CGImage<float> *ImgGrad, CGImage<float> *ImgNorm)
 {
-	int hogBlockSizeX = BLOCK_SIZE_W;
-	int hogBlockSizeY = BLOCK_SIZE_H;
+	int hogBlockSizeX = BLOCK_SIZE_W, hogBlockSizeY = BLOCK_SIZE_H;
+	int hogCellSizeX = CELL_SIZE_W, hogCellSizeY = CELL_SIZE_H;
 	int hogNoHistogramBins = NO_BINS;
 	int noCellX = ImgGrad->width / hogCellSizeX;
 	int noCellY = ImgGrad->hight / hogCellSizeY;
 	int noBlockX = ImgGrad->width / hogCellSizeX - hogBlockSizeX + 1;
 	int noBlockY = ImgGrad->hight / hogCellSizeY - hogBlockSizeY + 1;
 
-	cgHogInit(hogCellSizeX, hogCellSizeY);
+	//cgInitHistogram(hogCellSizeX, hogCellSizeY);
 
 	dim3 blockSize(hogCellSizeX, hogBlockSizeX, hogBlockSizeY);
 	dim3 gridSize(noBlockX, noBlockY);
 	cgHogHistogram<<<gridSize, blockSize, hogNoHistogramBins * hogBlockSizeX * hogBlockSizeY * hogCellSizeX * hogBlockSizeX * hogBlockSizeY * sizeof(float)>>>
 		(hogHistogram->GetData(true), ImgGrad->GetData(true), ImgNorm->GetData(true), hogNoHistogramBins, hogCellSizeX, hogCellSizeY, hogBlockSizeX, hogBlockSizeY, ImgGrad->width, ImgGrad->hight);
 
-	int alignedBlockDimX = 16;
-	int alignedBlockDimY = 2;
-	int alignedBlockDimZ = 2;
+	int alignedBlockDimX = ClosestPowerOfTwo(NO_BINS);
+	int alignedBlockDimY = ClosestPowerOfTwo(BLOCK_SIZE_W);
+	int alignedBlockDimZ = ClosestPowerOfTwo(BLOCK_SIZE_H);
 	blockSize = dim3(hogNoHistogramBins, hogBlockSizeX, hogBlockSizeY);
 	gridSize = dim3(noBlockX, noBlockY);
 	normalizeHistograms<<<gridSize, blockSize, hogNoHistogramBins * hogBlockSizeX * hogBlockSizeY * sizeof(float)>>>
 		(hogHistogram->GetData(true), hogNoHistogramBins, noBlockX, noBlockY, hogBlockSizeX, hogBlockSizeY, alignedBlockDimX, alignedBlockDimY, alignedBlockDimZ, hogNoHistogramBins * noCellX, noCellY);
 
-	cgHogFree();
+	//cgFreeHistogram();
 }
 
 #endif

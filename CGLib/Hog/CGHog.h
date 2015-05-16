@@ -3,3 +3,5 @@
 #pragma once
 
 #include "CGHogHistogram.h"
+#include "CGHogSvmEvaluate.h"
+#include "CGHogEngine.h"

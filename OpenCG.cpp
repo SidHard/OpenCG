@@ -1,7 +1,7 @@
 //Èë¿Úº¯Êý
 
 #include "OpenCG.h"
-#include "opencv.hpp"
+#include "opencv2/opencv.hpp"
 #include "persondetectorwt.tcc"
 
 using namespace CG;
@@ -28,9 +28,9 @@ void on_mouse(int event, int x,int y,int flags,void* param)
 	} 
 }
 
-void main()
+int main()
 {
-	Mat m_Image = imread("D:\\1.bmp", CV_LOAD_IMAGE_GRAYSCALE);
+	Mat m_Image = imread("1.bmp", CV_LOAD_IMAGE_GRAYSCALE);
 
 	resize(m_Image, m_Image, Size(641, 479) );
 
@@ -53,7 +53,7 @@ void main()
 	ImgIn->UpdateDeviceFromHost();
 	//////////////////////////////////
 	long s_t = getTickCount();
-	//CG::Core::CGFilter(ImgDst, ImgIn, 0.1, 10, 1);
+	CG::Core::CGFilter(ImgDst, ImgIn, 0.1, 10, 1);
 	//CG::Core::CGComputeGradient(ImgDst, ImgIn);
 	//CG::Core::CGPyramid(ImgDst, ImgIn, 1.73);
 
@@ -63,10 +63,10 @@ void main()
 	//CG::Hog::cgInitHistogram();
 	//CG::Hog::CGHogHistogram(ImgDst, ImgGrad, ImgNorm);
 
-	//svmScore
-	std::vector<HogResult> hogResult;
-	CG::Hog::cgHogInit(PERSON_LINEAR_BIAS, PERSON_WEIGHT_VEC, PERSON_WEIGHT_VEC_LENGTH);
-	CG::Hog::CGHogExecute(hogResult, ImgIn);
+	////svmScore
+	//std::vector<HogResult> hogResult;
+	//CG::Hog::cgHogInit(PERSON_LINEAR_BIAS, PERSON_WEIGHT_VEC, PERSON_WEIGHT_VEC_LENGTH);
+	//CG::Hog::CGHogExecute(hogResult, ImgIn);
 
 	long e_t = getTickCount();
 	printf("%d", e_t - s_t);
@@ -79,7 +79,7 @@ void main()
 
 	onMouseImg = resultImg;
 
-	namedWindow("result", 0);
+	namedWindow("result", 1);
 
 	imshow("result", resultImg);
 
@@ -89,4 +89,6 @@ void main()
 
 	ImgIn->Free();
 	ImgDst->Free();
+
+        return 0;
 }

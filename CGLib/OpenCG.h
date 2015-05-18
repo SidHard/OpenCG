@@ -2,5 +2,5 @@
 
 #pragma once
 
-#include "Core\CGCore.h"
-#include "Hog\CGHog.h"
+#include "Core/CGCore.h"
+#include "Hog/CGHog.h"

@@ -16,10 +16,6 @@ texture<float, 1, cudaReadModeElementType> tex;
 #define convColumnTileWidth 16
 #define convColumnTileHeight 48
 
-#ifndef RADTODEG
-#define RADTODEG 57.2957795
-#endif
-
 float1 *convBuffer;
 
 //X,Y轴卷积核函数，递归调用

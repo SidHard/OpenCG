@@ -6,3 +6,4 @@
 #include "CGFilter.h"
 #include "CGConvolution.h"
 #include "CGPyramid.h"
+#include "CGDwtHaar.h"

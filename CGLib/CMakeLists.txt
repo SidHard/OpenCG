@@ -8,6 +8,7 @@ SET(OpenCG_CORE_SOURCES
 Core/CGConvolution.cpp
 Core/CGFilter.cpp
 Core/CGPyramid.cpp
+Core/CGDwtHaar.cpp
 )
 
 SET(OpenCG_CORE_HEADERS
@@ -17,12 +18,14 @@ Core/CGImage.h
 Core/CGConvolution.h
 Core/CGFilter.h
 Core/CGPyramid.h
+Core/CGDwtHaar.h
 )
 
 set(OpenCG_CORE_CUDA_SOURCES
 Core/CGConvolution.cu
 Core/CGFilter.cu
 Core/CGPyramid.cu
+Core/CGDwtHaar.cu
 )
 
 SET(OpenCG_HOG_HEADERS

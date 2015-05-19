@@ -32,7 +32,7 @@ int main()
 {
 	Mat m_Image = imread("1.bmp", CV_LOAD_IMAGE_GRAYSCALE);
 
-	resize(m_Image, m_Image, Size(641, 479) );
+	resize(m_Image, m_Image, Size(640, 480) );
 
 	m_Image.convertTo(m_Image,CV_32FC1,1.0/255);
 
@@ -53,7 +53,9 @@ int main()
 	ImgIn->UpdateDeviceFromHost();
 	//////////////////////////////////
 	long s_t = getTickCount();
-	CG::Core::CGFilter(ImgDst, ImgIn, 0.1, 10, 1);
+	//_sleep(10000);
+	//CG::Core::CGFilter(ImgDst, ImgIn, 0.1, 10, 1);
+	CG::Core::CGDwtHaar(ImgDst, ImgIn);
 	//CG::Core::CGComputeGradient(ImgDst, ImgIn);
 	//CG::Core::CGPyramid(ImgDst, ImgIn, 1.73);
 
@@ -69,7 +71,7 @@ int main()
 	//CG::Hog::CGHogExecute(hogResult, ImgIn);
 
 	long e_t = getTickCount();
-	printf("%d", e_t - s_t);
+	printf("%d", (e_t - s_t)/2500);
 	////////////////////////////////////
 	ImgDst->UpdateHostFromDevice();
 

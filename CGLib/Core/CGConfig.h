@@ -36,8 +36,6 @@ typedef unsigned short ushort;
 #define RADTODEG 57.2957795
 #endif
 
-#define HAAR_LEVEL 1
-
 #ifndef INV_SQRT_2
 #define INV_SQRT_2  0.70710678118654752440f;
 #endif

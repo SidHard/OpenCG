@@ -10,14 +10,14 @@ using namespace CG::Core;
 texture<float, 2, cudaReadModeElementType> texHaar;
 
 //__global__ void CGConvRow(unsigned char *d_Result, int dataW, int dataH)
-__global__ void CGHaarRow(float *d_Result, int dataW, int dataH, int midSize)
+__global__ void CGHaarRow(float *d_Result, int dataW, int dataH, int midSize, int stride)
 {
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
 	int y = blockIdx.y * blockDim.y + threadIdx.y;
-	int globalPos = y * dataW + x;
+	int globalPos = y * stride + x;
 	float norm = INV_SQRT_2;
 
-	if(x<dataW - 1 && y<dataH)
+	if(x<dataW && y<dataH)
 	{
 		if(x < midSize)
 		{
@@ -37,11 +37,11 @@ __global__ void CGHaarRow(float *d_Result, int dataW, int dataH, int midSize)
 }
 
 //Y÷·æÌª˝
-__global__ void CGHaarColumn ( float *d_Result, int dataW, int dataH, int midSize)
+__global__ void CGHaarColumn ( float *d_Result, int dataW, int dataH, int midSize, int stride)
 {
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
 	int y = blockIdx.y * blockDim.y + threadIdx.y;
-	int globalPos = y * dataW + x;
+	int globalPos = y * stride + x;
 	float norm = INV_SQRT_2;
 
 	if(x<dataW && y<dataH)
@@ -58,7 +58,7 @@ __global__ void CGHaarColumn ( float *d_Result, int dataW, int dataH, int midSiz
 }
 
 __host__ void 
-Core::CGDwtHaar_CUDA(CGImage<float> *ImgDst, CGImage<float> *ImgIn)
+Core::CGDwtHaar_CUDA(CGImage<float> *ImgDst, CGImage<float> *ImgIn, int haar_level)
 {
 	dim3 gridSize((ImgIn->width + 16 - 1) / 16, (ImgIn->hight + 16 - 1) / 16);
 	dim3 blockSize(16, 16);
@@ -66,33 +66,31 @@ Core::CGDwtHaar_CUDA(CGImage<float> *ImgDst, CGImage<float> *ImgIn)
 	//∞Û∂®Œ∆¿Ì
 	const cudaChannelFormatDesc desc = cudaCreateChannelDesc<float>();
 	texHaar.normalized = false;
-	float *haarBuffer;
+	float *haarBufferRow;
+	float *haarBufferCol;
 	size_t pitch;
-	cudaMallocPitch((void**)&haarBuffer, &pitch, ImgIn->width*sizeof(float), ImgIn->hight);
-	cudaMemcpy2D(haarBuffer, pitch, ImgIn->GetData(true), ImgIn->width*sizeof(float), ImgIn->width*sizeof(float), ImgIn->hight, cudaMemcpyDeviceToDevice);
+	cudaMallocPitch((void**)&haarBufferRow, &pitch, ImgIn->width*sizeof(float), ImgIn->hight);
+	cudaMallocPitch((void**)&haarBufferCol, &pitch, ImgIn->width*sizeof(float), ImgIn->hight);
+	cudaMemcpy2D(haarBufferRow, pitch, ImgIn->GetData(true), ImgIn->width*sizeof(float), ImgIn->width*sizeof(float), ImgIn->hight, cudaMemcpyDeviceToDevice);
 
-	//int midSize = ImgIn->dataSize/2;
-	int level = HAAR_LEVEL;
+	int stride = pitch/sizeof(float);
 
-	for(int i = 0; i < level; i++)
+	for(int i = 0; i < haar_level; i++)
 	{
-		cudaBindTexture2D(0, texHaar, haarBuffer, desc, ImgIn->width, ImgIn->hight, pitch);
+		cudaBindTexture2D(0, texHaar, haarBufferRow, desc, ImgIn->width, ImgIn->hight, pitch);
 
-		CGHaarRow<<<gridSize, blockSize>>>(haarBuffer, ImgIn->width, ImgIn->hight, ImgIn->width/2);
+		CGHaarRow<<<gridSize, blockSize>>>(haarBufferCol, ImgIn->width, ImgIn->hight, ImgIn->width/2, stride);
 
-		cudaBindTexture2D(0, texHaar, haarBuffer, desc, ImgIn->width, ImgIn->hight, pitch);
+		cudaBindTexture2D(0, texHaar, haarBufferCol, desc, ImgIn->width, ImgIn->hight, pitch);
 
-		if(i < level - 1)
-		{
-			CGHaarColumn<<<gridSize, blockSize>>>(haarBuffer, ImgIn->width, ImgIn->hight, ImgIn->hight/2);
-		}
-		else
-		{
-			CGHaarColumn<<<gridSize, blockSize>>>(ImgDst->GetData(true), ImgIn->width, ImgIn->hight, ImgIn->hight/2);
-		}
+		CGHaarColumn<<<gridSize, blockSize>>>(haarBufferRow, ImgIn->width, ImgIn->hight, ImgIn->hight/2, stride);
 	}
 
-	cudaFree(haarBuffer);
+	cudaMemcpy2D(ImgDst->GetData(true), ImgIn->width*sizeof(float), haarBufferRow, pitch, ImgIn->width*sizeof(float), ImgIn->hight, cudaMemcpyDeviceToDevice);
+
+
+	cudaFree(haarBufferRow);
+	cudaFree(haarBufferCol);
 	cudaUnbindTexture(texHaar);
 }
 

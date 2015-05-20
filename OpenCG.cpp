@@ -32,7 +32,7 @@ int main()
 {
 	Mat m_Image = imread("1.bmp", CV_LOAD_IMAGE_GRAYSCALE);
 
-	resize(m_Image, m_Image, Size(640, 480) );
+	resize(m_Image, m_Image, Size(641, 479) );
 
 	m_Image.convertTo(m_Image,CV_32FC1,1.0/255);
 
@@ -55,7 +55,7 @@ int main()
 	long s_t = getTickCount();
 	//_sleep(10000);
 	//CG::Core::CGFilter(ImgDst, ImgIn, 0.1, 10, 1);
-	CG::Core::CGDwtHaar(ImgDst, ImgIn);
+	CG::Core::CGDwtHaar(ImgDst, ImgIn, 2);
 	//CG::Core::CGComputeGradient(ImgDst, ImgIn);
 	//CG::Core::CGPyramid(ImgDst, ImgIn, 1.73);
 

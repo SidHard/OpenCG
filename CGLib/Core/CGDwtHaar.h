@@ -1,6 +1,5 @@
 //author 2015 Wang Xinbo
 //
-//图像X,Y轴卷积，在HOG中提取图像梯度，与二维卷积核相比，速度更快
 
 #pragma once
 
@@ -10,12 +9,12 @@ namespace CG
 {
 	namespace Core
 	{
-		void CGDwtHaar(CGImage<float> *ImgDst, CGImage<float> *ImgIn);
+		void CGDwtHaar(CGImage<float> *ImgDst, CGImage<float> *ImgIn, int haar_level = 1);
 
-		void CGDwtHaar_CPU(CGImage<float> *ImgDst, CGImage<float> *ImgIn);
+		void CGDwtHaar_CPU(CGImage<float> *ImgDst, CGImage<float> *ImgIn, int haar_level);
 
 #ifndef COMPILE_WITHOUT_CUDA
-		void CGDwtHaar_CUDA(CGImage<float> *ImgDst, CGImage<float> *ImgIn);
+		void CGDwtHaar_CUDA(CGImage<float> *ImgDst, CGImage<float> *ImgIn, int haar_level);
 #endif
 	}
 }
